@@ -31,7 +31,8 @@ class mains extends CI_Controller {
 		if(($this->form_validation->run())&&($already == ""))
 		{
 			$this->Main->add_user($name,$alias,$email,$password,$dob);
-			$this->load->view('pokes_view');
+			// $this->load->view('pokes_view');
+			redirect('/pokes_page');
 		}
 		if($this->form_validation->run() === FALSE)
 		{
@@ -40,20 +41,33 @@ class mains extends CI_Controller {
 		}
 	}
 	public function try_login()
-	{
+	{	
+		if(!$this->input->post('password')||!$this->input->post('email'))
+		{
+			$this->session->set_flashdata('login_message','Both email and password must be present to login.');
+			redirect('/');
+		}
+
 		$this->load->model('Main');
 		$email = $this->input->post('email');
 		$password = $this->input->post('password');
 		$record = $this->Main->get_user($email);
 		$password = crypt($password,$record['password']);
+		
+		if(!$record)
+		{
+			$this->session->set_flashdata('login_message','User not found.');
+			redirect('/');	
+		}
+
 		if($record)
 		{
 			if($record['password']==$password){
 				$this->session->set_userdata('record', $record);
-				redirect("/pokes/index");
+				redirect('/pokes_page');
 			}
 			$this->session->set_flashdata('message', "Sorry, user name or password wasn't right.");
-			// $this->load->view('main');
+			
 			redirect('/');
 		}
 	}
